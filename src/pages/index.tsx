@@ -3,6 +3,7 @@ import type {NextPage, GetStaticProps} from 'next';
 import styled from 'styled-components';
 import {CategoryScale} from 'chart.js';
 import Chart from 'chart.js/auto';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 import {EventsCharts} from '../components/main/home/charts/events-charts.component';
 import {Pois} from '../components/main/home/pois/pois.component';
@@ -58,19 +59,23 @@ export const getStaticProps: GetStaticProps<StaticProps> = async () => {
 	return {
 		props: {
 			eventsDaily:
-				(await request<EventsItem[]>('http://localhost:5555/events/daily')) ||
-				[],
+				(await request<EventsItem[]>(
+					`${process.env.NEXT_PUBLIC_BASE_URL}events/daily`
+				)) || [],
 			eventsHourly:
 				(await request<EventsHourlyItem[]>(
-					'http://localhost:5555/events/hourly'
+					`${process.env.NEXT_PUBLIC_BASE_URL}events/hourly`
 				)) || [],
 			statsDaily:
-				(await request<StatsItem[]>('http://localhost:5555/stats/daily')) || [],
+				(await request<StatsItem[]>(
+					`${process.env.NEXT_PUBLIC_BASE_URL}stats/daily`
+				)) || [],
 			statsHourly:
 				(await request<StatsHourlyItem[]>(
-					'http://localhost:5555/stats/hourly'
+					`${process.env.NEXT_PUBLIC_BASE_URL}stats/hourly`
 				)) || [],
-			pois: (await request<Poi[]>('http://localhost:5555/poi')) || [],
+			pois:
+				(await request<Poi[]>(`${process.env.NEXT_PUBLIC_BASE_URL}poi`)) || [],
 		},
 	};
 };

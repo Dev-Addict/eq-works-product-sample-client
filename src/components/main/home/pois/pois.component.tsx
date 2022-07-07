@@ -1,4 +1,5 @@
 import {ChangeEventHandler, FC, useEffect, useState} from 'react';
+import Dynamic from 'next/dynamic';
 import Fuse from 'fuse.js';
 import styled, {css} from 'styled-components';
 
@@ -63,6 +64,13 @@ const TableRow = styled.tr<TableRowProps>`
 		`}
 `;
 
+export const DynamicPoisMap = Dynamic(
+	async () => (await import('./pois-map.component')).PoisMap,
+	{
+		ssr: false,
+	}
+);
+
 interface Props {
 	pois: Poi[];
 }
@@ -116,14 +124,17 @@ export const Pois: FC<Props> = ({pois}) => {
 				/>
 			</Header>
 			<Table>
-				<tr>
-					<th>ID</th>
-					<th>Name</th>
-					<th>Latitude</th>
-					<th>Longitude</th>
-				</tr>
-				{renderTableRows()}
+				<thead>
+					<TableRow>
+						<th>ID</th>
+						<th>Name</th>
+						<th>Latitude</th>
+						<th>Longitude</th>
+					</TableRow>
+				</thead>
+				<tbody>{renderTableRows()}</tbody>
 			</Table>
+			<DynamicPoisMap pois={pois} />
 		</Container>
 	);
 };
