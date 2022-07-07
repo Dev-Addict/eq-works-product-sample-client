@@ -118,8 +118,8 @@ export const StatsCharts: FC<Props> = ({statsDaily, statsHourly}) => {
 					textStyle={TextStyle.PARAGRAPH}
 					value={
 						typeof currentIndex === 'number'
-							? 'Click on the bars to see more details.'
-							: 'Click on the chart to go back to main chart.'
+							? 'Click on the chart to go back to main chart.'
+							: 'Click on the bars to see more details.'
 					}
 				/>
 				<Metrics>
