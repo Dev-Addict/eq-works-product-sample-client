@@ -16,7 +16,10 @@ export const Text = forwardRef<HTMLElement, Props>(function Text(
 	const {element: Element, ...typographyStyle} = TYPOGRAPHIES[textStyle];
 
 	return (
-		<Element {...props} style={{...typographyStyle, ...style}} ref={ref}>
+		<Element
+			{...props}
+			style={{...typographyStyle, margin: 0, padding: 0, ...style}}
+			ref={ref}>
 			{value}
 		</Element>
 	);
