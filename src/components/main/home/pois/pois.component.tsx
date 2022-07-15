@@ -1,139 +1,97 @@
 import {ChangeEventHandler, FC, useEffect, useState} from 'react';
-import Dynamic from 'next/dynamic';
-import Fuse from 'fuse.js';
-import styled, {css} from 'styled-components';
 
+import {
+	Container,
+	DynamicPoisMap,
+	Header,
+	Input,
+	InputWrapper,
+	Title,
+} from './pois.components';
+import {PoisTable} from './pois-table/pois-table.component';
+import {Dropdown} from '../../../shared/dropdown/dropdown.component';
 import {Text} from '../../../shared/text.component';
 import {TextStyle} from '../../../../types/enums/text-style.enum';
 import {Poi} from '../../../../types/poi.type';
-
-const Container = styled.div`
-	padding: 20px;
-	background-color: #067bc211;
-	border: 1px solid #067bc2;
-	border-radius: 16px;
-	display: flex;
-	flex-direction: column;
-	gap: 16px;
-`;
-
-const Header = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	justify-content: space-between;
-`;
-
-const Input = styled.input`
-	outline: none;
-	border: 1px solid #067bc2;
-	border-radius: 24px;
-	padding: 8px 16px;
-	font-size: 16px;
-`;
-
-const Table = styled.table`
-	border: 1px solid #067bc2;
-	border-radius: 8px;
-	border-spacing: 0;
-	overflow: hidden;
-
-	& td,
-	& th {
-		padding: 8px;
-		text-align: left;
-	}
-
-	& th {
-		background-color: #067bc2;
-		color: #fff;
-	}
-`;
-
-interface TableRowProps {
-	queried?: boolean;
-}
-
-const TableRow = styled.tr<TableRowProps>`
-	${({queried}) =>
-		queried &&
-		css`
-			background-color: #067bc2bb;
-			color: #fff;
-			font-weight: 500;
-		`}
-`;
-
-export const DynamicPoisMap = Dynamic(
-	async () => (await import('./pois-map.component')).PoisMap,
-	{
-		ssr: false,
-	}
-);
+import {EventsHourlyItem} from '../../../../types/events-hourly-item.type';
+import {StatsHourlyItem} from '../../../../types/stats-hourly-item.type';
+import {DropdownOption} from '../../../../types/dropdown-option.type';
 
 interface Props {
 	pois: Poi[];
+	eventsHourly: EventsHourlyItem[];
+	statsHourly: StatsHourlyItem[];
+	days: string[];
 }
 
-export const Pois: FC<Props> = ({pois}) => {
+export const Pois: FC<Props> = ({pois, eventsHourly, statsHourly, days}) => {
 	const [search, setSearch] = useState('');
-	const [results, setResults] = useState<Poi[]>([]);
-	const [fuse, setFuse] = useState<Fuse<Poi>>(new Fuse(pois, {keys: ['name']}));
+	const [daysOptions, setDaysOptions] = useState<
+		DropdownOption<string | null>[]
+	>([
+		{
+			value: null,
+			text: 'All Days',
+			key: 'all-days',
+		},
+		...days.map((day) => ({
+			value: day,
+			text: new Date(day).toLocaleDateString(),
+			key: day,
+		})),
+	]);
+	const [day, setDay] = useState<null | string>(null);
 
 	const onSearchChange =
 		(): ChangeEventHandler<HTMLInputElement> =>
 		({target: {value}}) =>
 			setSearch(value);
-
-	const renderTableRows = () => [
-		...results.map(({poi_id, name, lat, lon}) => (
-			<TableRow key={poi_id} queried>
-				<td>{poi_id}</td>
-				<td>{name}</td>
-				<td>{lat}</td>
-				<td>{lon}</td>
-			</TableRow>
-		)),
-		...pois
-			.filter(({poi_id}) => !results.find((item) => item.poi_id === poi_id))
-			.map(({poi_id, name, lat, lon}) => (
-				<TableRow key={poi_id}>
-					<td>{poi_id}</td>
-					<td>{name}</td>
-					<td>{lat}</td>
-					<td>{lon}</td>
-				</TableRow>
-			)),
-	];
+	const onDaySelect = () => (value: null | string) => setDay(value);
 
 	useEffect(() => {
-		setResults(fuse.search(search).map(({item}) => item));
-	}, [fuse, search]);
-	useEffect(() => {
-		setFuse(new Fuse(pois, {keys: ['name']}));
-	}, [pois]);
+		setDaysOptions([
+			{
+				value: null,
+				text: 'All Days',
+				key: 'all-days',
+			},
+			...days.map((day) => ({
+				value: day,
+				text: new Date(day).toLocaleDateString(),
+				key: day,
+			})),
+		]);
+	}, [days]);
 
 	return (
 		<Container>
 			<Header>
-				<Text textStyle={TextStyle.HEADING_2} value="Pois" />
-				<Input
-					placeholder="Search..."
-					value={search}
-					onChange={onSearchChange()}
-				/>
+				<Title>
+					<Text textStyle={TextStyle.HEADING_2} value="Pois" />
+				</Title>
+				<InputWrapper>
+					<Dropdown
+						options={daysOptions}
+						placeholder="Select day"
+						value={day}
+						onSelect={onDaySelect()}
+					/>
+				</InputWrapper>
+				<InputWrapper>
+					<Input
+						placeholder="Search..."
+						value={search}
+						onChange={onSearchChange()}
+					/>
+				</InputWrapper>
 			</Header>
-			<Table>
-				<thead>
-					<TableRow>
-						<th>ID</th>
-						<th>Name</th>
-						<th>Latitude</th>
-						<th>Longitude</th>
-					</TableRow>
-				</thead>
-				<tbody>{renderTableRows()}</tbody>
-			</Table>
+			<PoisTable
+				pois={pois}
+				eventsHourly={eventsHourly}
+				statsHourly={statsHourly}
+				search={search}
+				day={day}
+			/>
 			<DynamicPoisMap pois={pois} />
 		</Container>
 	);

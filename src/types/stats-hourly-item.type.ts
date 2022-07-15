@@ -4,4 +4,5 @@ export interface StatsHourlyItem {
 	impressions: number;
 	clicks: number;
 	revenue: number;
+	poi_id: number;
 }

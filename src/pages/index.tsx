@@ -50,7 +50,12 @@ const Home: NextPage<Props, StaticProps> = ({
 			<Text textStyle={TextStyle.HEADING_1} value="EQ Works Product Sample" />
 			<EventsCharts eventsDaily={eventsDaily} eventsHourly={eventsHourly} />
 			<StatsCharts statsDaily={statsDaily} statsHourly={statsHourly} />
-			<Pois pois={pois} />
+			<Pois
+				pois={pois}
+				eventsHourly={eventsHourly}
+				statsHourly={statsHourly}
+				days={eventsDaily.map(({date}) => date)}
+			/>
 		</Container>
 	);
 };
