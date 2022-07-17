@@ -1,4 +1,5 @@
 import {EventsHourlyItem} from '../types/events-hourly-item.type';
+import {PoiEvents} from '../types/poi-events.type';
 
 export const getPoiEvents = (
 	eventsHourly: EventsHourlyItem[],
@@ -10,4 +11,4 @@ export const getPoiEvents = (
 				(value[currentItem.poi_id] || 0) + currentItem.events;
 
 		return value;
-	}, {} as {[key: number]: number});
+	}, {} as PoiEvents);

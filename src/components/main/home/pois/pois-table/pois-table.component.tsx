@@ -2,37 +2,58 @@ import {FC, useEffect, useState} from 'react';
 import Fuse from 'fuse.js';
 
 import {TableRow, Table} from './pois-table.components';
+import {SortAngels} from './sort-angels.component';
 import {fixNumber} from '../../../../../utils/fix-number.util';
-import {getPoiEvents} from '../../../../../utils/get-poi-events.util';
-import {getPoiStats} from '../../../../../utils/get-poi-stats.util';
-import {EventsHourlyItem} from '../../../../../types/events-hourly-item.type';
+import {sortPois} from '../../../../../utils/sort-pois.util';
+import {poiTableHeadsList} from '../../../../../constants/lists/poi-table-heads.list';
 import {Poi} from '../../../../../types/poi.type';
-import {StatsHourlyItem} from '../../../../../types/stats-hourly-item.type';
+import {PoiEvents} from '../../../../../types/poi-events.type';
+import {PoiStats} from '../../../../../types/poi-stats.type';
+import {PoiSortOption} from '../../../../../types/poi-sort-options.type';
 
 interface Props {
 	pois: Poi[];
-	eventsHourly: EventsHourlyItem[];
-	statsHourly: StatsHourlyItem[];
+	poiEvents: PoiEvents;
+	poiStats: PoiStats;
 	search: string;
 	day: null | string;
+	sortBy: PoiSortOption;
+	reverseSort: boolean;
+
+	onSort(sortBy: PoiSortOption, reverseSort: boolean): void;
 }
 
 export const PoisTable: FC<Props> = ({
 	pois,
-	eventsHourly,
-	statsHourly,
+	poiEvents,
+	poiStats,
 	search,
-	day,
+	sortBy,
+	reverseSort,
+	onSort: oOnSort,
 }) => {
-	const [results, setResults] = useState<Poi[]>([]);
-	const [poiEvents, setPoiEvents] = useState<{[key: number]: number}>(
-		getPoiEvents(eventsHourly, day)
+	const [sortedPois, setSortedPois] = useState<Poi[]>(
+		sortPois(pois, poiEvents, poiStats, sortBy, reverseSort)
 	);
-	const [poiStats, setPoiStats] = useState<{
-		[key: number]: {impressions: number; clicks: number; revenue: number};
-	}>(getPoiStats(statsHourly, day));
-
+	const [results, setResults] = useState<Poi[]>([]);
 	const [fuse, setFuse] = useState<Fuse<Poi>>(new Fuse(pois, {keys: ['name']}));
+
+	const onSort = (sortBy: PoiSortOption) => (reverseSort: boolean) =>
+		oOnSort(sortBy, reverseSort);
+
+	const renderHeads = () =>
+		poiTableHeadsList.map(([title, type]) => (
+			<th key={type}>
+				<div>
+					{title}
+					<SortAngels
+						active={type === sortBy}
+						reverseSort={reverseSort}
+						onSort={onSort(type)}
+					/>
+				</div>
+			</th>
+		));
 	const renderPoiRows = (pois: Poi[], queried = false) =>
 		pois.map(({poi_id, name, lat, lon}) => (
 			<TableRow key={poi_id} queried={queried}>
@@ -49,7 +70,9 @@ export const PoisTable: FC<Props> = ({
 	const renderTableRows = () => [
 		...renderPoiRows(results, true),
 		...renderPoiRows(
-			pois.filter(({poi_id}) => !results.find((item) => item.poi_id === poi_id))
+			sortedPois.filter(
+				({poi_id}) => !results.find((item) => item.poi_id === poi_id)
+			)
 		),
 	];
 
@@ -60,25 +83,13 @@ export const PoisTable: FC<Props> = ({
 		setFuse(new Fuse(pois, {keys: ['name']}));
 	}, [pois]);
 	useEffect(() => {
-		setPoiEvents(getPoiEvents(eventsHourly, day));
-	}, [eventsHourly, day]);
-	useEffect(() => {
-		setPoiStats(getPoiStats(statsHourly, day));
-	}, [statsHourly, day]);
+		setSortedPois(sortPois(pois, poiEvents, poiStats, sortBy, reverseSort));
+	}, [poiEvents, poiStats, pois, reverseSort, sortBy]);
 
 	return (
 		<Table>
 			<thead>
-				<TableRow>
-					<th>ID</th>
-					<th>Name</th>
-					<th>Events</th>
-					<th>Impressions</th>
-					<th>Clicks</th>
-					<th>Revenue</th>
-					<th>Latitude</th>
-					<th>Longitude</th>
-				</TableRow>
+				<TableRow>{renderHeads()}</TableRow>
 			</thead>
 			<tbody>{renderTableRows()}</tbody>
 		</Table>

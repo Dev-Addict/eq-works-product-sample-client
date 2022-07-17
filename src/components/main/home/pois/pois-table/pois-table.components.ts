@@ -15,6 +15,13 @@ export const Table = styled.table`
 	& th {
 		background-color: #067bc2;
 		color: #fff;
+
+		& div {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: space-between;
+		}
 	}
 `;
 
