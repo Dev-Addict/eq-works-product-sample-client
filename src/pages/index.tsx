@@ -16,6 +16,7 @@ import {EventsHourlyItem} from '../types/events-hourly-item.type';
 import {StatsItem} from '../types/stats-item.type';
 import {StatsHourlyItem} from '../types/stats-hourly-item.type';
 import {Poi} from '../types/poi.type';
+import {OverviewCharts} from '../components/main/home/charts/overview-charts.component';
 
 const Container = styled.div`
 	margin: 20px;
@@ -48,6 +49,12 @@ const Home: NextPage<Props, StaticProps> = ({
 	return (
 		<Container>
 			<Text textStyle={TextStyle.HEADING_1} value="EQ Works Product Sample" />
+			<OverviewCharts
+				eventsDaily={eventsDaily}
+				eventsHourly={eventsHourly}
+				statsDaily={statsDaily}
+				statsHourly={statsHourly}
+			/>
 			<EventsCharts eventsDaily={eventsDaily} eventsHourly={eventsHourly} />
 			<StatsCharts statsDaily={statsDaily} statsHourly={statsHourly} />
 			<Pois

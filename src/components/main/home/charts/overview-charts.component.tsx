@@ -1,6 +1,6 @@
 import {FC, useEffect, useState} from 'react';
 import {ActiveElement, ChartData, ChartEvent} from 'chart.js';
-import {Bar} from 'react-chartjs-2';
+import {Line} from 'react-chartjs-2';
 
 import {Container, Description} from './charts.components';
 import {Text} from '../../../shared/text.component';
@@ -9,20 +9,35 @@ import {getHourlyChartData} from '../../../../utils/charts/get-hourly-chart-data
 import {TextStyle} from '../../../../types/enums/text-style.enum';
 import {EventsItem} from '../../../../types/events-item.type';
 import {EventsHourlyItem} from '../../../../types/events-hourly-item.type';
+import {StatsItem} from '../../../../types/stats-item.type';
+import {StatsHourlyItem} from '../../../../types/stats-hourly-item.type';
 
 interface Props {
 	eventsDaily: EventsItem[];
 	eventsHourly: EventsHourlyItem[];
+	statsDaily: StatsItem[];
+	statsHourly: StatsHourlyItem[];
 }
 
-export const EventsCharts: FC<Props> = ({eventsDaily, eventsHourly}) => {
-	const [chartData, setChartData] = useState<ChartData<'bar'>>(
+export const OverviewCharts: FC<Props> = ({
+	eventsDaily,
+	eventsHourly,
+	statsDaily,
+	statsHourly,
+}) => {
+	const [currentIndex, setCurrentIndex] = useState<null | number>(null);
+	const [chartData, setChartData] = useState<ChartData<'line'>>(
 		getChartData({
 			eventsDaily,
+			statsDaily,
+			total: true,
 			events: true,
+			impressions: true,
+			revenue: true,
+			clicks: true,
+			scale: true,
 		})
 	);
-	const [currentIndex, setCurrentIndex] = useState<null | number>(null);
 
 	const onChartClick = () => (_: ChartEvent, element: ActiveElement[]) => {
 		if (typeof currentIndex !== 'number') {
@@ -31,38 +46,51 @@ export const EventsCharts: FC<Props> = ({eventsDaily, eventsHourly}) => {
 	};
 
 	useEffect(() => {
-		if (typeof currentIndex === 'number')
+		if (typeof currentIndex === 'number') {
 			setChartData(
 				getHourlyChartData({
 					eventsDaily,
 					eventsHourly,
+					statsDaily,
+					statsHourly,
 					currentIndex,
+					total: true,
 					events: true,
+					impressions: true,
+					revenue: true,
+					clicks: true,
+					scale: true,
 				})
 			);
-		else
+		} else
 			setChartData(
 				getChartData({
 					eventsDaily,
+					statsDaily,
+					total: true,
 					events: true,
+					impressions: true,
+					revenue: true,
+					clicks: true,
+					scale: true,
 				})
 			);
-	}, [currentIndex, eventsDaily, eventsHourly]);
+	}, [currentIndex, eventsDaily, eventsHourly, statsDaily, statsHourly]);
 
 	return (
 		<Container>
 			<Description>
-				<Text textStyle={TextStyle.HEADING_2} value="Events" />
+				<Text textStyle={TextStyle.HEADING_2} value="Overview" />
 				<Text
 					textStyle={TextStyle.PARAGRAPH}
 					value={
 						typeof currentIndex === 'number'
 							? 'Click on the chart to go back to main chart.'
-							: 'Click on the bars to see more details.'
+							: 'Click on the data points to see more details.'
 					}
 				/>
 			</Description>
-			<Bar
+			<Line
 				data={chartData}
 				options={{
 					plugins: {
@@ -70,10 +98,10 @@ export const EventsCharts: FC<Props> = ({eventsDaily, eventsHourly}) => {
 							display: true,
 							text:
 								typeof currentIndex === 'number'
-									? `Events Chart - ${new Date(
+									? `Overview Chart - ${new Date(
 											eventsDaily[currentIndex].date
 									  ).toLocaleDateString()}`
-									: 'Events Chart',
+									: 'Overview Chart',
 						},
 						legend: {
 							display: true,

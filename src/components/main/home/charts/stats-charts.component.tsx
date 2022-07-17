@@ -5,6 +5,8 @@ import {Bar} from 'react-chartjs-2';
 
 import {Container, Description} from './charts.components';
 import {Text} from '../../../shared/text.component';
+import {getChartData} from '../../../../utils/charts/get-chart-data.util';
+import {getHourlyChartData} from '../../../../utils/charts/get-hourly-chart-data.util';
 import {TextStyle} from '../../../../types/enums/text-style.enum';
 import {StatsItem} from '../../../../types/stats-item.type';
 import {StatsHourlyItem} from '../../../../types/stats-hourly-item.type';
@@ -43,17 +45,14 @@ interface Props {
 export const StatsCharts: FC<Props> = ({statsDaily, statsHourly}) => {
 	const [metric, setMetric] =
 		useState<keyof Omit<StatsItem, 'date'>>('impressions');
-	const [chartData, setChartData] = useState<ChartData<'bar'>>({
-		labels: statsDaily.map(({date}) => new Date(date).toLocaleDateString()),
-		datasets: [
-			{
-				label: metric,
-				data: statsDaily.map((stats) => stats[metric]),
-				backgroundColor: new Array(statsDaily.length).fill('#067bc2'),
-				borderWidth: 1,
-			},
-		],
-	});
+	const [chartData, setChartData] = useState<ChartData<'bar'>>(
+		getChartData({
+			statsDaily,
+			impressions: metric === 'impressions',
+			clicks: metric === 'clicks',
+			revenue: metric === 'revenue',
+		})
+	);
 	const [currentIndex, setCurrentIndex] = useState<null | number>(null);
 
 	const onChartClick = () => (_: ChartEvent, element: ActiveElement[]) => {
@@ -65,39 +64,26 @@ export const StatsCharts: FC<Props> = ({statsDaily, statsHourly}) => {
 		setMetric(metric);
 
 	useEffect(() => {
-		if (typeof currentIndex === 'number') {
-			const currentIndexItems = statsHourly.filter(
-				({date}) => date === statsDaily[currentIndex].date
+		if (typeof currentIndex === 'number')
+			setChartData(
+				getHourlyChartData({
+					statsDaily,
+					statsHourly,
+					currentIndex,
+					impressions: metric === 'impressions',
+					clicks: metric === 'clicks',
+					revenue: metric === 'revenue',
+				})
 			);
-
-			setChartData({
-				labels: new Array(24).fill(null).map((_, i) => i.toString()),
-				datasets: [
-					{
-						label: metric,
-						data: new Array(24)
-							.fill(null)
-							.map(
-								(_, i) =>
-									currentIndexItems.find(({hour}) => hour === i)?.[metric] || 0
-							),
-						backgroundColor: new Array(24).fill('#067bc2'),
-						borderWidth: 1,
-					},
-				],
-			});
-		} else
-			setChartData({
-				labels: statsDaily.map(({date}) => new Date(date).toLocaleDateString()),
-				datasets: [
-					{
-						label: metric,
-						data: statsDaily.map((stats) => stats[metric]),
-						backgroundColor: new Array(statsDaily.length).fill('#067bc2'),
-						borderWidth: 1,
-					},
-				],
-			});
+		else
+			setChartData(
+				getChartData({
+					statsDaily,
+					impressions: metric === 'impressions',
+					clicks: metric === 'clicks',
+					revenue: metric === 'revenue',
+				})
+			);
 	}, [currentIndex, metric, statsDaily, statsHourly]);
 
 	const renderMetrics = () =>
