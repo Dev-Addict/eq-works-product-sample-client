@@ -12,17 +12,13 @@ import {PoiSortOption} from '../../../../types/poi-sort-options.type';
 const Container = styled.div`
 	height: 400px;
 	border-radius: 8px;
-	position: relative;
-	margin-bottom: 50px;
 `;
 
 const ColorsWrapper = styled.div`
 	display: flex;
 	flex-direction: row;
-	position: absolute;
 	height: 40px;
 	width: 100%;
-	bottom: -50px;
 `;
 
 const Colors = styled.div`
@@ -257,10 +253,11 @@ export const PoisMap: FC<Props> = ({pois, poiEvents, poiStats, sortBy}) => {
 	}, [handlePoisPoints]);
 
 	return (
-		<Container ref={mapContainerRef}>
+		<>
+			<Container ref={mapContainerRef} />
 			<ColorsWrapper>
 				<Colors>{renderColors()}</Colors>
 			</ColorsWrapper>
-		</Container>
+		</>
 	);
 };
